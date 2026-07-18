@@ -108,21 +108,182 @@ class _ProfileTabState extends State<ProfileTab> {
       builder: (context) {
         return AlertDialog(
           backgroundColor: AppColors.surface,
-          title: Text('About ScanShield', style: AppTextStyles.headingMedium),
+          title: Text('About ScanShield 🛡️', style: AppTextStyles.headingMedium),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'ScanShield checks installed and downloaded applications for permissions, behaviors, and indicators matching malwares.',
+                'What We Do:',
+                style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                '• Deep static analysis of APK files using DEX byte-code scanning\n'
+                '• PDF document threat inspection for hidden risks\n'
+                '• Real-time risk scoring (0–100) across multiple threat vectors\n'
+                '• Detection of OTP theft, credential theft, data theft, and screen control exploits\n'
+                '• Detailed permission and component-level breakdown',
                 style: AppTextStyles.bodyMedium,
               ),
               const SizedBox(height: AppSizes.paddingMedium),
               Text(
-                'Developed with 💙 using Flutter & Firebase.',
+                'Version: 1.0.0',
+                style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Developed with: FFP Android Technologies',
+                style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: AppSizes.paddingMedium),
+              Text(
+                '© 2026 ScanShield. All rights reserved.',
                 style: AppTextStyles.caption,
               ),
             ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Close'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showPrivacyPolicyDialog() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        final currentDate = "${DateTime.now().year}-${DateTime.now().month.toString().padLeft(2, '0')}-${DateTime.now().day.toString().padLeft(2, '0')}";
+        return AlertDialog(
+          backgroundColor: AppColors.surface,
+          title: Text('Privacy Policy 🔒', style: AppTextStyles.headingMedium),
+          content: SizedBox(
+            width: double.maxFinite,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Last Updated: $currentDate\n\n'
+                    'Your privacy is our top priority. This policy explains how ScanShield handles your data.',
+                    style: AppTextStyles.bodyMedium,
+                  ),
+                  const SizedBox(height: AppSizes.paddingMedium),
+                  
+                  Text('1. Data We Collect', style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 4),
+                  Text(
+                    '• Account information (email, name) via Firebase Authentication\n'
+                    '• Scan metadata (file name, risk score, scan timestamp) stored securely in Firestore\n'
+                    '• We do NOT collect personal files, contacts, messages, or browsing history',
+                    style: AppTextStyles.bodyMedium,
+                  ),
+                  const SizedBox(height: AppSizes.paddingMedium),
+                  
+                  Text('2. File Analysis', style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 4),
+                  Text(
+                    '• APK and PDF files you upload are analyzed on our secure servers\n'
+                    '• Files are processed in-memory and deleted immediately after analysis\n'
+                    '• We never store, share, or retain your uploaded files',
+                    style: AppTextStyles.bodyMedium,
+                  ),
+                  const SizedBox(height: AppSizes.paddingMedium),
+                  
+                  Text('3. Data Storage', style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 4),
+                  Text(
+                    '• Scan reports and history are stored securely in Google Firebase\n'
+                    '• Only YOU can access your scan history through your authenticated account\n'
+                    '• Data is encrypted in transit (HTTPS) and at rest',
+                    style: AppTextStyles.bodyMedium,
+                  ),
+                  const SizedBox(height: AppSizes.paddingMedium),
+                  
+                  Text('4. Data Sharing', style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 4),
+                  Text(
+                    '• We do NOT sell, rent, or share your data with third parties\n'
+                    '• We do NOT use your data for advertising\n'
+                    '• Anonymous, aggregated statistics may be used to improve the app',
+                    style: AppTextStyles.bodyMedium,
+                  ),
+                  const SizedBox(height: AppSizes.paddingMedium),
+                  
+                  Text('5. Third-Party Services', style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 4),
+                  Text(
+                    '• Google Firebase (authentication, database)\n'
+                    '• Groq AI (chatbot responses — messages are not stored by us)',
+                    style: AppTextStyles.bodyMedium,
+                  ),
+                  const SizedBox(height: AppSizes.paddingMedium),
+                  
+                  Text('6. Your Rights', style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 4),
+                  Text(
+                    '• Access, download, or delete your scan history anytime\n'
+                    '• Delete your account permanently from the Profile section\n'
+                    '• Contact us for any privacy concerns',
+                    style: AppTextStyles.bodyMedium,
+                  ),
+                  const SizedBox(height: AppSizes.paddingMedium),
+                  
+                  Text('7. Security', style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 4),
+                  Text(
+                    '• Industry-standard encryption for all data\n'
+                    '• Secure authentication via Firebase\n'
+                    '• Regular security audits and updates',
+                    style: AppTextStyles.bodyMedium,
+                  ),
+                  const SizedBox(height: AppSizes.paddingMedium),
+                  
+                  Text('8. Children\'s Privacy', style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 4),
+                  Text(
+                    'ScanShield is not intended for users under 13 years of age.',
+                    style: AppTextStyles.bodyMedium,
+                  ),
+                  const SizedBox(height: AppSizes.paddingMedium),
+                  
+                  Text('9. Changes to This Policy', style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 4),
+                  Text(
+                    'We may update this policy occasionally. Continued use of the app implies acceptance.',
+                    style: AppTextStyles.bodyMedium,
+                  ),
+                  const SizedBox(height: AppSizes.paddingMedium),
+                  
+                  Text('10. Contact Us', style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 4),
+                  RichText(
+                    text: TextSpan(
+                      style: AppTextStyles.bodyMedium,
+                      children: [
+                        const TextSpan(text: 'For privacy questions or data requests, email: '),
+                        TextSpan(
+                          text: 'support@scanshield.app',
+                          style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: AppSizes.paddingMedium),
+                  
+                  Text(
+                    'By using ScanShield, you agree to this Privacy Policy.',
+                    style: AppTextStyles.bodyMedium.copyWith(fontStyle: FontStyle.italic),
+                  ),
+                ],
+              ),
+            ),
           ),
           actions: [
             TextButton(
@@ -224,24 +385,10 @@ class _ProfileTabState extends State<ProfileTab> {
                 ),
                 const Divider(color: AppColors.background, height: 1),
                 ListTile(
-                  leading: const Icon(Icons.share_rounded, color: AppColors.primary),
-                  title: Text('Share App', style: AppTextStyles.bodyLarge),
-                  trailing: const Icon(Icons.chevron_right, color: AppColors.textSecondary),
-                  onTap: () {},
-                ),
-                const Divider(color: AppColors.background, height: 1),
-                ListTile(
-                  leading: const Icon(Icons.star_outline_rounded, color: AppColors.primary),
-                  title: Text('Rate App', style: AppTextStyles.bodyLarge),
-                  trailing: const Icon(Icons.chevron_right, color: AppColors.textSecondary),
-                  onTap: () {},
-                ),
-                const Divider(color: AppColors.background, height: 1),
-                ListTile(
                   leading: const Icon(Icons.privacy_tip_outlined, color: AppColors.primary),
                   title: Text('Privacy Policy', style: AppTextStyles.bodyLarge),
                   trailing: const Icon(Icons.chevron_right, color: AppColors.textSecondary),
-                  onTap: () {},
+                  onTap: _showPrivacyPolicyDialog,
                 ),
               ],
             ),
