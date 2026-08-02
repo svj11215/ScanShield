@@ -84,9 +84,9 @@ class _RiskScoreCircleState extends State<RiskScoreCircle> with SingleTickerProv
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
-                          color: finalColor.withAlpha(20),
-                          blurRadius: 40,
-                          spreadRadius: 5,
+                          color: finalColor.withAlpha(25),
+                          blurRadius: 30,
+                          spreadRadius: 2,
                         ),
                       ],
                     ),
@@ -108,14 +108,14 @@ class _RiskScoreCircleState extends State<RiskScoreCircle> with SingleTickerProv
                     children: [
                       Text(
                         '${animatedValue.toInt()}',
-                        style: AppTextStyles.headingLarge.copyWith(
+                        style: AppTextStyles.displayLarge.copyWith(
                           fontSize: 48,
                           color: AppColors.textPrimary,
                         ),
                       ),
                       Text(
                         'RISK SCORE',
-                        style: AppTextStyles.caption.copyWith(
+                        style: AppTextStyles.labelSmall.copyWith(
                           fontWeight: FontWeight.bold,
                           letterSpacing: 1.2,
                         ),
@@ -148,7 +148,7 @@ class _CircleProgressPainter extends CustomPainter {
     
     // Background track
     final trackPaint = Paint()
-      ..color = AppColors.surface
+      ..color = AppColors.surfaceVariant
       ..strokeWidth = 12
       ..style = PaintingStyle.stroke;
     

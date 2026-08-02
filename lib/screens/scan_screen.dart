@@ -3,7 +3,6 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import '../services/api_service.dart';
 import '../services/firestore_service.dart';
 import '../services/auth_service.dart';
@@ -134,7 +133,6 @@ class _ScanScreenState extends State<ScanScreen> {
 
       if (mounted) {
         setState(() {
-          _isAnalyzing = false;
           _selectedFile = null;
           _selectedFileName = null;
           _selectedFileSize = 0;
@@ -149,8 +147,11 @@ class _ScanScreenState extends State<ScanScreen> {
       }
     } catch (e) {
       if (mounted) {
-        setState(() => _isAnalyzing = false);
         _showErrorDialog(e.toString());
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isAnalyzing = false);
       }
     }
   }
@@ -237,16 +238,16 @@ class _ScanScreenState extends State<ScanScreen> {
                   Container(
                     padding: const EdgeInsets.all(AppSizes.paddingMedium),
                     decoration: BoxDecoration(
-                      color: AppColors.surface,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: AppColors.surface),
+                      color: AppColors.surfaceVariant,
+                      borderRadius: BorderRadius.circular(AppRadius.large),
+                      border: Border.all(color: AppColors.border),
                     ),
                     child: Column(
                       children: [
                         _buildInfoRow('💡 Only scan files from trusted sources'),
-                        const Divider(color: AppColors.background, height: 20),
+                        const Divider(color: AppColors.border, height: 20),
                         _buildInfoRow('🔒 Your file is not stored — analyzed and discarded'),
-                        const Divider(color: AppColors.background, height: 20),
+                        const Divider(color: AppColors.border, height: 20),
                         _buildInfoRow('⚡ Analysis takes 10–60 seconds'),
                       ],
                     ),
@@ -279,7 +280,7 @@ class _ScanScreenState extends State<ScanScreen> {
           height: 250,
           alignment: Alignment.center,
           decoration: BoxDecoration(
-            color: AppColors.surface.withAlpha(80),
+            color: AppColors.surfaceVariant.withAlpha(120),
             borderRadius: BorderRadius.circular(16),
           ),
           child: Column(
@@ -374,7 +375,7 @@ class _ScanScreenState extends State<ScanScreen> {
                 ),
               ],
             ),
-            const Divider(color: AppColors.background, height: 24),
+            const Divider(color: AppColors.border, height: 24),
             Text(
               _selectedFileName ?? 'Unnamed File',
               style: AppTextStyles.bodyLarge.copyWith(

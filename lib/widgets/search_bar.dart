@@ -21,10 +21,11 @@ class CustomSearchBar extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: AppColors.surface,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppRadius.large),
+        border: Border.all(color: AppColors.border),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withAlpha(20),
+            color: AppColors.shadow,
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -44,6 +45,7 @@ class CustomSearchBar extends StatelessWidget {
                 )
               : null,
           contentPadding: const EdgeInsets.symmetric(vertical: 14),
+          filled: false,
           border: InputBorder.none,
           enabledBorder: InputBorder.none,
           focusedBorder: InputBorder.none,

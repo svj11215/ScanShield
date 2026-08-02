@@ -21,7 +21,7 @@ class CustomButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final themeColor = color ?? AppColors.primary;
-    final contentColor = themeColor == AppColors.primary ? AppColors.background : Colors.white;
+    final contentColor = AppColors.textOnPrimary;
 
     return SizedBox(
       width: double.infinity,
@@ -31,6 +31,10 @@ class CustomButton extends StatelessWidget {
           foregroundColor: contentColor,
           disabledBackgroundColor: themeColor.withAlpha(100),
           disabledForegroundColor: contentColor.withAlpha(150),
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppRadius.large),
+          ),
         ),
         onPressed: isLoading ? null : onPressed,
         child: isLoading

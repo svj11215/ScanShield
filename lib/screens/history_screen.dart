@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import '../models/scan_model.dart';
 import '../services/firestore_service.dart';
 import '../services/auth_service.dart';
@@ -10,9 +9,7 @@ import '../utils/constants.dart';
 import '../utils/text_styles.dart';
 import '../utils/date_formatter.dart';
 import '../widgets/search_bar.dart';
-import '../widgets/filter_chip_row.dart';
 import '../widgets/empty_state.dart';
-import '../widgets/scan_card.dart';
 import 'package:intl/intl.dart';
 import 'report_screen.dart';
 
@@ -46,15 +43,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
   // Selection Mode (Bulk Delete)
   bool _isSelectionMode = false;
   final Set<String> _selectedScanIds = {};
-
-  final List<String> _quickFilters = [
-    'All',
-    '🚨 High',
-    '⚠️ Medium',
-    '✅ Low',
-    'This Week',
-    'This Month',
-  ];
 
   @override
   void dispose() {
@@ -180,7 +168,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       ),
                     ],
                   ),
-                  const Divider(color: AppColors.background),
+                  const Divider(color: AppColors.border),
                   const SizedBox(height: 8),
 
                   // Sort section
@@ -487,18 +475,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                   onClear: _clearSearch,
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: AppSizes.paddingLarge, vertical: 4),
-                child: FilterChipRow(
-                  filters: _quickFilters,
-                  selectedFilter: _selectedQuickFilter,
-                  onSelected: (filter) {
-                    setState(() {
-                      _selectedQuickFilter = filter;
-                    });
-                  },
-                ),
-              ),
+
             ],
 
             Expanded(

@@ -133,18 +133,27 @@ class _SignupScreenState extends State<SignupScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // Logo/Icon
+                  // Logo
                   Center(
                     child: Container(
-                      padding: const EdgeInsets.all(12),
+                      width: 72,
+                      height: 72,
+                      padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: AppColors.primary.withAlpha(20),
+                        color: AppColors.surfaceTint,
                         shape: BoxShape.circle,
+                        border: Border.all(color: AppColors.border, width: 1),
                       ),
-                      child: const Icon(
-                        Icons.shield_rounded,
-                        size: 60,
-                        color: AppColors.primary,
+                      child: Image.asset(
+                        'assets/images/logo.png',
+                        fit: BoxFit.contain,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Icon(
+                            Icons.shield_rounded,
+                            size: 40,
+                            color: AppColors.primary,
+                          );
+                        },
                       ),
                     ),
                   ),
@@ -276,7 +285,7 @@ class _SignupScreenState extends State<SignupScreen> {
                             height: 24,
                             child: CircularProgressIndicator(
                               strokeWidth: 2.5,
-                              color: AppColors.background,
+                              color: AppColors.textOnPrimary,
                             ),
                           )
                         : const Text('Sign Up'),
@@ -286,18 +295,17 @@ class _SignupScreenState extends State<SignupScreen> {
                   // OR Divider
                   Row(
                     children: [
-                      const Expanded(child: Divider(color: AppColors.surface, thickness: 1.5)),
+                      const Expanded(child: Divider(color: AppColors.border)),
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: AppSizes.paddingMedium),
                         child: Text(
                           'OR',
-                          style: AppTextStyles.bodyMedium.copyWith(
-                            color: AppColors.textSecondary.withAlpha(150),
+                          style: AppTextStyles.caption.copyWith(
                             fontWeight: FontWeight.w600,
                           ),
                         ),
                       ),
-                      const Expanded(child: Divider(color: AppColors.surface, thickness: 1.5)),
+                      const Expanded(child: Divider(color: AppColors.border)),
                     ],
                   ),
                   const SizedBox(height: AppSizes.paddingLarge),
@@ -305,22 +313,11 @@ class _SignupScreenState extends State<SignupScreen> {
                   // Google Sign-In Button
                   OutlinedButton(
                     onPressed: _isLoading ? null : _handleGoogleSignIn,
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: AppColors.textPrimary,
-                      side: const BorderSide(color: AppColors.surface, width: 1.5),
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                    ),
                     child: _isGoogleLoading
                         ? const SizedBox(
                             width: 24,
                             height: 24,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2.5,
-                              color: AppColors.textPrimary,
-                            ),
+                            child: CircularProgressIndicator(strokeWidth: 2.5),
                           )
                         : Row(
                             mainAxisAlignment: MainAxisAlignment.center,
@@ -361,7 +358,6 @@ class _SignupScreenState extends State<SignupScreen> {
                           style: AppTextStyles.bodyMedium.copyWith(
                             color: AppColors.primary,
                             fontWeight: FontWeight.bold,
-                            decoration: TextDecoration.underline,
                           ),
                         ),
                       ),

@@ -10,6 +10,8 @@ import '../widgets/risk_score_circle.dart';
 import '../widgets/section_header.dart';
 import '../widgets/info_row.dart';
 import '../widgets/permission_chip.dart';
+import '../chatbot/draggable_chatbot_overlay.dart';
+import '../chatbot/system_prompt.dart';
 
 class ReportScreen extends StatefulWidget {
   final ScanModel? scanModel;
@@ -55,6 +57,20 @@ class _ReportScreenState extends State<ReportScreen> {
       );
     }
   }
+
+  String get _reportContext => ShieldBotPrompt.buildReportContext(
+    fileName: _scan.fileName,
+    fileType: _scan.fileType,
+    riskScore: _scan.overallRisk,
+    riskLevel: _scan.riskLevel,
+    packageName: _scan.packageName,
+    pages: _scan.pages,
+    isEncrypted: _scan.isEncrypted,
+    permissions: _scan.permissionsDetected,
+    findings: _scan.findings,
+    suspiciousApis: _scan.suspiciousApis,
+    recommendation: _scan.recommendation,
+  );
 
   Color get _riskColor => _scan.riskColor;
 
@@ -180,7 +196,7 @@ class _ReportScreenState extends State<ReportScreen> {
       builder: (context) {
         return AlertDialog(
           backgroundColor: AppColors.surface,
-          title: Text('Delete Report', style: AppTextStyles.headingMedium),
+          title: Text('Delete Report', style: AppTextStyles.titleLarge),
           content: const Text('Are you sure you want to delete this scan report permanently?'),
           actions: [
             TextButton(
@@ -264,334 +280,349 @@ class _ReportScreenState extends State<ReportScreen> {
               child: CircularProgressIndicator(color: AppColors.primary),
             )
           : SafeArea(
-              child: Column(
+              child: Stack(
                 children: [
-                  Expanded(
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.all(AppSizes.paddingLarge),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          // Animated Risk Score Circle
-                          RiskScoreCircle(
-                            score: _scan.overallRisk,
-                            level: _scan.riskLevel,
-                          ),
-                          const SizedBox(height: AppSizes.paddingMedium),
-
-                          // Risk Level Badge Pill
-                          Center(
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                              decoration: BoxDecoration(
-                                color: _riskColor.withAlpha(30),
-                                borderRadius: BorderRadius.circular(20),
-                                border: Border.all(color: _riskColor.withAlpha(120), width: 1.5),
+                  Column(
+                    children: [
+                      Expanded(
+                        child: SingleChildScrollView(
+                          padding: const EdgeInsets.all(AppSizes.paddingLarge),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              // Animated Risk Score Circle
+                              RiskScoreCircle(
+                                score: _scan.overallRisk,
+                                level: _scan.riskLevel,
                               ),
-                              child: Text(
-                                _badgeText,
-                                style: AppTextStyles.bodyLarge.copyWith(
-                                  color: _riskColor,
-                                  fontWeight: FontWeight.bold,
-                                  letterSpacing: 1.1,
+                              const SizedBox(height: AppSizes.paddingMedium),
+
+                              // Risk Level Badge Pill
+                              Center(
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                                  decoration: BoxDecoration(
+                                    color: _riskColor.withAlpha(25),
+                                    borderRadius: BorderRadius.circular(20),
+                                    border: Border.all(color: _riskColor.withAlpha(120), width: 1.5),
+                                  ),
+                                  child: Text(
+                                    _badgeText,
+                                    style: AppTextStyles.bodyLarge.copyWith(
+                                      color: _riskColor,
+                                      fontWeight: FontWeight.bold,
+                                      letterSpacing: 1.1,
+                                    ),
+                                  ),
                                 ),
                               ),
-                            ),
-                          ),
-                          const SizedBox(height: AppSizes.paddingLarge * 1.5),
+                              const SizedBox(height: AppSizes.paddingLarge * 1.5),
 
-                          // Recommendation Card
-                          Container(
-                            padding: const EdgeInsets.all(AppSizes.paddingMedium),
-                            decoration: BoxDecoration(
-                              color: AppColors.surface,
-                              borderRadius: const BorderRadius.only(
-                                topRight: Radius.circular(16),
-                                bottomRight: Radius.circular(16),
-                              ),
-                              border: Border(
-                                left: BorderSide(color: _riskColor, width: 4.5),
-                              ),
-                            ),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Icon(_recommendationIcon, color: _riskColor, size: 28),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        'Recommendation',
-                                        style: AppTextStyles.bodyLarge.copyWith(fontWeight: FontWeight.bold),
+                              // Recommendation Card
+                              Container(
+                                padding: const EdgeInsets.all(AppSizes.paddingMedium),
+                                decoration: BoxDecoration(
+                                  color: AppColors.surface,
+                                  borderRadius: const BorderRadius.only(
+                                    topRight: Radius.circular(AppRadius.large),
+                                    bottomRight: Radius.circular(AppRadius.large),
+                                  ),
+                                  border: Border(
+                                    left: BorderSide(color: _riskColor, width: 4.5),
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: AppColors.shadow,
+                                      blurRadius: 8,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ],
+                                ),
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Icon(_recommendationIcon, color: _riskColor, size: 28),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            'Recommendation',
+                                            style: AppTextStyles.titleMedium,
+                                          ),
+                                          const SizedBox(height: 6),
+                                          Text(
+                                            _scan.recommendation,
+                                            style: AppTextStyles.bodyMedium,
+                                          ),
+                                        ],
                                       ),
-                                      const SizedBox(height: 6),
-                                      Text(
-                                        _scan.recommendation,
-                                        style: AppTextStyles.bodyMedium,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: AppSizes.paddingLarge),
+
+                              // Info Card (APK or PDF Specific)
+                              Card(
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: AppSizes.paddingMedium, vertical: 8),
+                                  child: Column(
+                                    children: [
+                                      InfoRowWidget(
+                                        icon: isApk ? Icons.android_rounded : Icons.picture_as_pdf_rounded,
+                                        label: 'File Name',
+                                        value: _scan.fileName,
+                                      ),
+                                      const Divider(color: AppColors.border, height: 1),
+                                      if (isApk) ...[
+                                        InfoRowWidget(
+                                          icon: Icons.inventory_2_outlined,
+                                          label: 'Package',
+                                          value: _scan.packageName ?? 'N/A',
+                                        ),
+                                        const Divider(color: AppColors.border, height: 1),
+                                      ] else ...[
+                                        InfoRowWidget(
+                                          icon: Icons.pages_rounded,
+                                          label: 'Pages',
+                                          value: _scan.pages?.toString() ?? 'N/A',
+                                        ),
+                                        const Divider(color: AppColors.border, height: 1),
+                                        InfoRowWidget(
+                                          icon: Icons.lock_outline_rounded,
+                                          label: 'Encrypted',
+                                          value: _scan.isEncrypted == true ? 'Yes' : 'No',
+                                        ),
+                                        const Divider(color: AppColors.border, height: 1),
+                                      ],
+                                      InfoRowWidget(
+                                        icon: Icons.calendar_month_outlined,
+                                        label: 'Scanned',
+                                        value: formattedDate.split(' - ').first,
                                       ),
                                     ],
                                   ),
                                 ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: AppSizes.paddingLarge),
-
-                          // Info Card (APK or PDF Specific)
-                          Card(
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: AppSizes.paddingMedium, vertical: 8),
-                              child: Column(
-                                children: [
-                                  InfoRowWidget(
-                                    icon: isApk ? Icons.android_rounded : Icons.picture_as_pdf_rounded,
-                                    label: 'File Name',
-                                    value: _scan.fileName,
-                                  ),
-                                  const Divider(color: AppColors.background, height: 1),
-                                  if (isApk) ...[
-                                    InfoRowWidget(
-                                      icon: Icons.inventory_2_outlined,
-                                      label: 'Package',
-                                      value: _scan.packageName ?? 'N/A',
-                                    ),
-                                    const Divider(color: AppColors.background, height: 1),
-                                  ] else ...[
-                                    InfoRowWidget(
-                                      icon: Icons.pages_rounded,
-                                      label: 'Pages',
-                                      value: _scan.pages?.toString() ?? 'N/A',
-                                    ),
-                                    const Divider(color: AppColors.background, height: 1),
-                                    InfoRowWidget(
-                                      icon: Icons.lock_outline_rounded,
-                                      label: 'Encrypted',
-                                      value: _scan.isEncrypted == true ? 'Yes' : 'No',
-                                    ),
-                                    const Divider(color: AppColors.background, height: 1),
-                                  ],
-                                  InfoRowWidget(
-                                    icon: Icons.calendar_month_outlined,
-                                    label: 'Scanned',
-                                    value: formattedDate.split(' - ').first,
-                                  ),
-                                ],
                               ),
-                            ),
-                          ),
-                          const SizedBox(height: AppSizes.paddingLarge * 1.5),
+                              const SizedBox(height: AppSizes.paddingLarge * 1.5),
 
-                          // PDF Specific Metadata Section
-                          if (!isApk && _scan.metadata != null && _scan.metadata!.isNotEmpty) ...[
-                            SectionHeader(title: '📄 PDF Metadata'),
-                            const SizedBox(height: AppSizes.paddingMedium),
-                            Card(
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: AppSizes.paddingMedium, vertical: 8),
-                                child: Column(
-                                  children: [
-                                    InfoRowWidget(
-                                      icon: Icons.person_outline_rounded,
-                                      label: 'Author',
-                                      value: _scan.metadata?['author']?.toString() ?? 'N/A',
+                              // PDF Specific Metadata Section
+                              if (!isApk && _scan.metadata != null && _scan.metadata!.isNotEmpty) ...[
+                                const SectionHeader(title: '📄 PDF Metadata'),
+                                const SizedBox(height: AppSizes.paddingMedium),
+                                Card(
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(horizontal: AppSizes.paddingMedium, vertical: 8),
+                                    child: Column(
+                                      children: [
+                                        InfoRowWidget(
+                                          icon: Icons.person_outline_rounded,
+                                          label: 'Author',
+                                          value: _scan.metadata?['author']?.toString() ?? 'N/A',
+                                        ),
+                                        const Divider(color: AppColors.border, height: 1),
+                                        InfoRowWidget(
+                                          icon: Icons.computer_rounded,
+                                          label: 'Creator',
+                                          value: _scan.metadata?['creator']?.toString() ?? 'N/A',
+                                        ),
+                                        const Divider(color: AppColors.border, height: 1),
+                                        InfoRowWidget(
+                                          icon: Icons.settings_applications_outlined,
+                                          label: 'Producer',
+                                          value: _scan.metadata?['producer']?.toString() ?? 'N/A',
+                                        ),
+                                        const Divider(color: AppColors.border, height: 1),
+                                        InfoRowWidget(
+                                          icon: Icons.title_rounded,
+                                          label: 'Title',
+                                          value: _scan.metadata?['title']?.toString() ?? 'N/A',
+                                        ),
+                                        const Divider(color: AppColors.border, height: 1),
+                                        InfoRowWidget(
+                                          icon: Icons.subject_rounded,
+                                          label: 'Subject',
+                                          value: _scan.metadata?['subject']?.toString() ?? 'N/A',
+                                        ),
+                                      ],
                                     ),
-                                    const Divider(color: AppColors.background, height: 1),
-                                    InfoRowWidget(
-                                      icon: Icons.computer_rounded,
-                                      label: 'Creator',
-                                      value: _scan.metadata?['creator']?.toString() ?? 'N/A',
-                                    ),
-                                    const Divider(color: AppColors.background, height: 1),
-                                    InfoRowWidget(
-                                      icon: Icons.settings_applications_outlined,
-                                      label: 'Producer',
-                                      value: _scan.metadata?['producer']?.toString() ?? 'N/A',
-                                    ),
-                                    const Divider(color: AppColors.background, height: 1),
-                                    InfoRowWidget(
-                                      icon: Icons.title_rounded,
-                                      label: 'Title',
-                                      value: _scan.metadata?['title']?.toString() ?? 'N/A',
-                                    ),
-                                    const Divider(color: AppColors.background, height: 1),
-                                    InfoRowWidget(
-                                      icon: Icons.subject_rounded,
-                                      label: 'Subject',
-                                      value: _scan.metadata?['subject']?.toString() ?? 'N/A',
-                                    ),
-                                  ],
+                                  ),
+                                ),
+                                const SizedBox(height: AppSizes.paddingLarge * 1.5),
+                              ],
+
+                              // Threat Categories Section (Visual)
+                              const SectionHeader(title: '🛡️ Threat Categories'),
+                              const SizedBox(height: AppSizes.paddingMedium),
+                              Card(
+                                child: Padding(
+                                  padding: const EdgeInsets.all(AppSizes.paddingMedium),
+                                  child: Column(
+                                    children: [
+                                      _buildCategoryProgressItem('OTP Theft', Icons.sms_failed_rounded),
+                                      const SizedBox(height: 16),
+                                      _buildCategoryProgressItem('Credential Theft', Icons.password_rounded),
+                                      const SizedBox(height: 16),
+                                      _buildCategoryProgressItem('Data Theft', Icons.cloud_off_rounded),
+                                      const SizedBox(height: 16),
+                                      _buildCategoryProgressItem('Screen Control', Icons.screen_share_rounded),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: AppSizes.paddingLarge * 1.5),
+
+                              // Findings Section
+                              SectionHeader(
+                                title: '🔍 Detected Findings',
+                                count: _scan.findings.isEmpty ? null : _scan.findings.length,
+                                badgeColor: AppColors.danger,
+                              ),
+                              const SizedBox(height: AppSizes.paddingMedium),
+                              if (_scan.findings.isEmpty)
+                                _buildEmptyState('No issues detected ✅')
+                              else
+                                Column(
+                                  children: _scan.findings
+                                      .map(
+                                        (finding) => Card(
+                                          color: AppColors.surface,
+                                          margin: const EdgeInsets.only(bottom: 8),
+                                          child: Padding(
+                                            padding: const EdgeInsets.all(12),
+                                            child: Row(
+                                              children: [
+                                                const Icon(Icons.warning_amber_rounded, color: AppColors.danger, size: 20),
+                                                const SizedBox(width: 12),
+                                                Expanded(
+                                                  child: Text(
+                                                    finding,
+                                                    style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textPrimary),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                      )
+                                      .toList(),
+                                ),
+                              const SizedBox(height: AppSizes.paddingLarge * 1.5),
+
+                              // Permissions Section (APK only)
+                              if (isApk) ...[
+                                SectionHeader(
+                                  title: '🔐 Permissions Detected',
+                                  count: _scan.permissionsDetected.isEmpty ? null : _scan.permissionsDetected.length,
+                                  badgeColor: AppColors.primary,
+                                ),
+                                const SizedBox(height: AppSizes.paddingMedium),
+                                if (_scan.permissionsDetected.isEmpty)
+                                  _buildEmptyState('No permissions requested')
+                                else
+                                  Wrap(
+                                    spacing: 2,
+                                    runSpacing: 2,
+                                    children: _scan.permissionsDetected
+                                        .map((perm) => PermissionChip(permission: perm))
+                                        .toList(),
+                                  ),
+                                const SizedBox(height: AppSizes.paddingLarge * 1.5),
+                              ],
+
+                              // Suspicious APIs Section (APK only)
+                              if (isApk) ...[
+                                SectionHeader(
+                                  title: '⚠️ Suspicious APIs',
+                                  count: _scan.suspiciousApis.isEmpty ? null : _scan.suspiciousApis.length,
+                                  badgeColor: AppColors.warning,
+                                ),
+                                const SizedBox(height: AppSizes.paddingMedium),
+                                if (_scan.suspiciousApis.isEmpty)
+                                  _buildEmptyState('No suspicious APIs found')
+                                else
+                                  Column(
+                                    children: _scan.suspiciousApis
+                                        .map(
+                                          (api) => Card(
+                                            margin: const EdgeInsets.only(bottom: 8),
+                                            child: Padding(
+                                              padding: const EdgeInsets.all(12),
+                                              child: Row(
+                                                children: [
+                                                  const Icon(Icons.code_rounded, color: AppColors.warning, size: 18),
+                                                  const SizedBox(width: 12),
+                                                  Expanded(
+                                                    child: SelectableText(
+                                                      api,
+                                                      style: const TextStyle(
+                                                        fontFamily: 'monospace',
+                                                        fontSize: 12,
+                                                        fontWeight: FontWeight.bold,
+                                                        color: AppColors.textPrimary,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                        )
+                                        .toList(),
+                                  ),
+                                const SizedBox(height: AppSizes.paddingLarge),
+                              ],
+                            ],
+                          ),
+                        ),
+                      ),
+
+                      // Bottom Action Buttons
+                      Padding(
+                        padding: const EdgeInsets.all(AppSizes.paddingMedium),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            OutlinedButton.icon(
+                              onPressed: _shareReport,
+                              icon: const Icon(Icons.copy_rounded, size: 18),
+                              label: const Text('Copy Text Summary'),
+                              style: OutlinedButton.styleFrom(
+                                side: const BorderSide(color: AppColors.primary),
+                                foregroundColor: AppColors.primary,
+                                padding: const EdgeInsets.symmetric(vertical: 14),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(AppRadius.large),
                                 ),
                               ),
                             ),
-                            const SizedBox(height: AppSizes.paddingLarge * 1.5),
-                          ],
-
-                          // Threat Categories Section (Visual)
-                          SectionHeader(title: '🛡️ Threat Categories'),
-                          const SizedBox(height: AppSizes.paddingMedium),
-                          Card(
-                            child: Padding(
-                              padding: const EdgeInsets.all(AppSizes.paddingMedium),
-                              child: Column(
-                                children: [
-                                  _buildCategoryProgressItem('OTP Theft', Icons.sms_failed_rounded),
-                                  const SizedBox(height: 16),
-                                  _buildCategoryProgressItem('Credential Theft', Icons.password_rounded),
-                                  const SizedBox(height: 16),
-                                  _buildCategoryProgressItem('Data Theft', Icons.cloud_off_rounded),
-                                  const SizedBox(height: 16),
-                                  _buildCategoryProgressItem('Screen Control', Icons.screen_share_rounded),
-                                ],
+                            const SizedBox(height: 8),
+                            ElevatedButton.icon(
+                              onPressed: () {
+                                HapticFeedback.lightImpact();
+                                Navigator.pop(context);
+                              },
+                              icon: const Icon(Icons.shield_outlined, size: 18),
+                              label: const Text('Scan Another APK'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.primary,
+                                foregroundColor: AppColors.textOnPrimary,
+                                padding: const EdgeInsets.symmetric(vertical: 14),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(AppRadius.large),
+                                ),
                               ),
                             ),
-                          ),
-                          const SizedBox(height: AppSizes.paddingLarge * 1.5),
-
-                          // Findings Section
-                          SectionHeader(
-                            title: '🔍 Detected Findings',
-                            count: _scan.findings.isEmpty ? null : _scan.findings.length,
-                            badgeColor: AppColors.danger,
-                          ),
-                          const SizedBox(height: AppSizes.paddingMedium),
-                          if (_scan.findings.isEmpty)
-                            _buildEmptyState('No issues detected ✅')
-                          else
-                            Column(
-                              children: _scan.findings
-                                  .map(
-                                    (finding) => Card(
-                                      color: AppColors.surface,
-                                      margin: const EdgeInsets.only(bottom: 8),
-                                      child: Padding(
-                                        padding: const EdgeInsets.all(12),
-                                        child: Row(
-                                          children: [
-                                            const Icon(Icons.warning_amber_rounded, color: AppColors.danger, size: 20),
-                                            const SizedBox(width: 12),
-                                            Expanded(
-                                              child: Text(
-                                                finding,
-                                                style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textPrimary),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                  )
-                                  .toList(),
-                            ),
-                          const SizedBox(height: AppSizes.paddingLarge * 1.5),
-
-                          // Permissions Section (APK only)
-                          if (isApk) ...[
-                            SectionHeader(
-                              title: '🔐 Permissions Detected',
-                              count: _scan.permissionsDetected.isEmpty ? null : _scan.permissionsDetected.length,
-                              badgeColor: AppColors.primary,
-                            ),
-                            const SizedBox(height: AppSizes.paddingMedium),
-                            if (_scan.permissionsDetected.isEmpty)
-                              _buildEmptyState('No permissions requested')
-                            else
-                              Wrap(
-                                spacing: 2,
-                                runSpacing: 2,
-                                children: _scan.permissionsDetected
-                                    .map((perm) => PermissionChip(permission: perm))
-                                    .toList(),
-                              ),
-                            const SizedBox(height: AppSizes.paddingLarge * 1.5),
                           ],
-
-                          // Suspicious APIs Section (APK only)
-                          if (isApk) ...[
-                            SectionHeader(
-                              title: '⚠️ Suspicious APIs',
-                              count: _scan.suspiciousApis.isEmpty ? null : _scan.suspiciousApis.length,
-                              badgeColor: AppColors.warning,
-                            ),
-                            const SizedBox(height: AppSizes.paddingMedium),
-                            if (_scan.suspiciousApis.isEmpty)
-                              _buildEmptyState('No suspicious APIs found')
-                            else
-                              Column(
-                                children: _scan.suspiciousApis
-                                    .map(
-                                      (api) => Card(
-                                        margin: const EdgeInsets.only(bottom: 8),
-                                        child: Padding(
-                                          padding: const EdgeInsets.all(12),
-                                          child: Row(
-                                            children: [
-                                              const Icon(Icons.code_rounded, color: AppColors.warning, size: 18),
-                                              const SizedBox(width: 12),
-                                              Expanded(
-                                                child: SelectableText(
-                                                  api,
-                                                  style: const TextStyle(
-                                                    fontFamily: 'monospace',
-                                                    fontSize: 12,
-                                                    fontWeight: FontWeight.bold,
-                                                    color: AppColors.textPrimary,
-                                                  ),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                    )
-                                    .toList(),
-                              ),
-                            const SizedBox(height: AppSizes.paddingLarge),
-                          ],
-                        ],
+                        ),
                       ),
-                    ),
+                    ],
                   ),
-
-                  // Bottom Action Buttons
-                  Padding(
-                    padding: const EdgeInsets.all(AppSizes.paddingMedium),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        OutlinedButton.icon(
-                          onPressed: _shareReport,
-                          icon: const Icon(Icons.copy_rounded, size: 18),
-                          label: const Text('Copy Text Summary'),
-                          style: OutlinedButton.styleFrom(
-                            side: const BorderSide(color: AppColors.primary),
-                            foregroundColor: AppColors.primary,
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        ElevatedButton.icon(
-                          onPressed: () {
-                            HapticFeedback.lightImpact();
-                            Navigator.pop(context);
-                          },
-                          icon: const Icon(Icons.shield_outlined, size: 18),
-                          label: const Text('Scan Another APK'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.primary,
-                            foregroundColor: AppColors.background,
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
+                  DraggableChatbotOverlay(
+                    reportContext: _reportContext,
+                    reportFileName: _scan.fileName,
                   ),
                 ],
               ),
@@ -603,13 +634,14 @@ class _ReportScreenState extends State<ReportScreen> {
     return Container(
       padding: const EdgeInsets.all(AppSizes.paddingMedium),
       decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(12),
+        color: AppColors.surfaceVariant,
+        borderRadius: BorderRadius.circular(AppRadius.medium),
+        border: Border.all(color: AppColors.border),
       ),
       child: Center(
         child: Text(
           text,
-          style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary),
+          style: AppTextStyles.bodyMedium,
         ),
       ),
     );
@@ -629,7 +661,7 @@ class _ReportScreenState extends State<ReportScreen> {
             const SizedBox(width: 8),
             Text(
               category,
-              style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold),
+              style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold, color: AppColors.textPrimary),
             ),
             const Spacer(),
             Text(
@@ -643,7 +675,7 @@ class _ReportScreenState extends State<ReportScreen> {
           borderRadius: BorderRadius.circular(10),
           child: LinearProgressIndicator(
             value: progress,
-            backgroundColor: AppColors.background,
+            backgroundColor: AppColors.borderLight,
             valueColor: AlwaysStoppedAnimation<Color>(color),
             minHeight: 6,
           ),

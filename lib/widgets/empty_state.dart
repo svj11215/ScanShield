@@ -30,19 +30,20 @@ class EmptyState extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: AppColors.surface,
+                color: AppColors.surfaceVariant,
                 shape: BoxShape.circle,
+                border: Border.all(color: AppColors.border),
               ),
               child: Icon(
                 icon,
-                size: 64,
-                color: AppColors.textSecondary.withAlpha(120),
+                size: 56,
+                color: AppColors.textTertiary,
               ),
             ),
             const SizedBox(height: AppSizes.paddingLarge),
             Text(
               title,
-              style: AppTextStyles.headingMedium.copyWith(fontSize: 18),
+              style: AppTextStyles.titleLarge,
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
@@ -57,6 +58,9 @@ class EmptyState extends StatelessWidget {
                 onPressed: onButtonPressed,
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(AppRadius.medium),
+                  ),
                 ),
                 child: Text(buttonText!),
               ),

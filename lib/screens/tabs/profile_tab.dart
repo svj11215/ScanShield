@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import '../../services/auth_service.dart';
 import '../../services/firestore_service.dart';
 import '../../models/user_model.dart';
 import '../../utils/theme.dart';
 import '../../utils/constants.dart';
 import '../../utils/text_styles.dart';
-import '../../widgets/stat_card.dart';
 import '../login_screen.dart';
 
 class ProfileTab extends StatefulWidget {
@@ -19,52 +17,6 @@ class ProfileTab extends StatefulWidget {
 class _ProfileTabState extends State<ProfileTab> {
   final AuthService _authService = AuthService();
   final FirestoreService _firestoreService = FirestoreService();
-  bool _isLoading = false;
-
-  UserModel? _userModel;
-  Map<String, int> _stats = {
-    'totalScans': 0,
-    'maliciousCount': 0,
-    'safeCount': 0,
-  };
-
-  @override
-  void initState() {
-    super.initState();
-    _loadProfileData();
-  }
-
-  Future<void> _loadProfileData() async {
-    final user = _authService.getCurrentUser();
-    if (user == null) return;
-
-    if (mounted) setState(() => _isLoading = true);
-
-    try {
-      final userModel = await _firestoreService.getUserData(user.uid);
-      final stats = await _firestoreService.getUserStats(user.uid);
-
-      if (mounted) {
-        setState(() {
-          _userModel = userModel;
-          _stats = stats;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error loading profile: $e'),
-            backgroundColor: AppColors.danger,
-          ),
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
-    }
-  }
 
   void _showLogoutDialog() {
     showDialog(
@@ -72,7 +24,7 @@ class _ProfileTabState extends State<ProfileTab> {
       builder: (context) {
         return AlertDialog(
           backgroundColor: AppColors.surface,
-          title: Text('Logout', style: AppTextStyles.headingMedium),
+          title: Text('Logout', style: AppTextStyles.titleLarge),
           content: Text(
             'Are you sure you want to logout of ScanShield?',
             style: AppTextStyles.bodyMedium,
@@ -93,7 +45,10 @@ class _ProfileTabState extends State<ProfileTab> {
                   );
                 }
               },
-              style: ElevatedButton.styleFrom(backgroundColor: AppColors.danger, foregroundColor: Colors.white),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.danger,
+                foregroundColor: AppColors.textOnPrimary,
+              ),
               child: const Text('Logout'),
             ),
           ],
@@ -108,16 +63,29 @@ class _ProfileTabState extends State<ProfileTab> {
       builder: (context) {
         return AlertDialog(
           backgroundColor: AppColors.surface,
-          title: Text('About ScanShield 🛡️', style: AppTextStyles.headingMedium),
+          title: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: AppColors.surfaceTint,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.shield_rounded, color: AppColors.primary, size: 20),
+              ),
+              const SizedBox(width: 10),
+              Text('About ScanShield', style: AppTextStyles.titleLarge),
+            ],
+          ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 'What We Do:',
-                style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold),
+                style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold, color: AppColors.textPrimary),
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: 6),
               Text(
                 '• Deep static analysis of APK files using DEX byte-code scanning\n'
                 '• PDF document threat inspection for hidden risks\n'
@@ -128,13 +96,13 @@ class _ProfileTabState extends State<ProfileTab> {
               ),
               const SizedBox(height: AppSizes.paddingMedium),
               Text(
-                'Version: 1.0.0',
-                style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold),
+                'Version: 1.1.0',
+                style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold, color: AppColors.textPrimary),
               ),
               const SizedBox(height: 4),
               Text(
                 'Developed with: FFP Android Technologies',
-                style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold),
+                style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold, color: AppColors.textPrimary),
               ),
               const SizedBox(height: AppSizes.paddingMedium),
               Text(
@@ -161,7 +129,13 @@ class _ProfileTabState extends State<ProfileTab> {
         final currentDate = "${DateTime.now().year}-${DateTime.now().month.toString().padLeft(2, '0')}-${DateTime.now().day.toString().padLeft(2, '0')}";
         return AlertDialog(
           backgroundColor: AppColors.surface,
-          title: Text('Privacy Policy 🔒', style: AppTextStyles.headingMedium),
+          title: Row(
+            children: [
+              const Icon(Icons.privacy_tip_outlined, color: AppColors.primary, size: 22),
+              const SizedBox(width: 10),
+              Text('Privacy Policy', style: AppTextStyles.titleLarge),
+            ],
+          ),
           content: SizedBox(
             width: double.maxFinite,
             child: SingleChildScrollView(
@@ -176,7 +150,7 @@ class _ProfileTabState extends State<ProfileTab> {
                   ),
                   const SizedBox(height: AppSizes.paddingMedium),
                   
-                  Text('1. Data We Collect', style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold)),
+                  Text('1. Data We Collect', style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
                   const SizedBox(height: 4),
                   Text(
                     '• Account information (email, name) via Firebase Authentication\n'
@@ -186,7 +160,7 @@ class _ProfileTabState extends State<ProfileTab> {
                   ),
                   const SizedBox(height: AppSizes.paddingMedium),
                   
-                  Text('2. File Analysis', style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold)),
+                  Text('2. File Analysis', style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
                   const SizedBox(height: 4),
                   Text(
                     '• APK and PDF files you upload are analyzed on our secure servers\n'
@@ -196,7 +170,7 @@ class _ProfileTabState extends State<ProfileTab> {
                   ),
                   const SizedBox(height: AppSizes.paddingMedium),
                   
-                  Text('3. Data Storage', style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold)),
+                  Text('3. Data Storage', style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
                   const SizedBox(height: 4),
                   Text(
                     '• Scan reports and history are stored securely in Google Firebase\n'
@@ -206,7 +180,7 @@ class _ProfileTabState extends State<ProfileTab> {
                   ),
                   const SizedBox(height: AppSizes.paddingMedium),
                   
-                  Text('4. Data Sharing', style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold)),
+                  Text('4. Data Sharing', style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
                   const SizedBox(height: 4),
                   Text(
                     '• We do NOT sell, rent, or share your data with third parties\n'
@@ -216,7 +190,7 @@ class _ProfileTabState extends State<ProfileTab> {
                   ),
                   const SizedBox(height: AppSizes.paddingMedium),
                   
-                  Text('5. Third-Party Services', style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold)),
+                  Text('5. Third-Party Services', style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
                   const SizedBox(height: 4),
                   Text(
                     '• Google Firebase (authentication, database)\n'
@@ -225,7 +199,7 @@ class _ProfileTabState extends State<ProfileTab> {
                   ),
                   const SizedBox(height: AppSizes.paddingMedium),
                   
-                  Text('6. Your Rights', style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold)),
+                  Text('6. Your Rights', style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
                   const SizedBox(height: 4),
                   Text(
                     '• Access, download, or delete your scan history anytime\n'
@@ -235,7 +209,7 @@ class _ProfileTabState extends State<ProfileTab> {
                   ),
                   const SizedBox(height: AppSizes.paddingMedium),
                   
-                  Text('7. Security', style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold)),
+                  Text('7. Security', style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
                   const SizedBox(height: 4),
                   Text(
                     '• Industry-standard encryption for all data\n'
@@ -245,7 +219,7 @@ class _ProfileTabState extends State<ProfileTab> {
                   ),
                   const SizedBox(height: AppSizes.paddingMedium),
                   
-                  Text('8. Children\'s Privacy', style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold)),
+                  Text('8. Children\'s Privacy', style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
                   const SizedBox(height: 4),
                   Text(
                     'ScanShield is not intended for users under 13 years of age.',
@@ -253,7 +227,7 @@ class _ProfileTabState extends State<ProfileTab> {
                   ),
                   const SizedBox(height: AppSizes.paddingMedium),
                   
-                  Text('9. Changes to This Policy', style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold)),
+                  Text('9. Changes to This Policy', style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
                   const SizedBox(height: 4),
                   Text(
                     'We may update this policy occasionally. Continued use of the app implies acceptance.',
@@ -261,7 +235,7 @@ class _ProfileTabState extends State<ProfileTab> {
                   ),
                   const SizedBox(height: AppSizes.paddingMedium),
                   
-                  Text('10. Contact Us', style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold)),
+                  Text('10. Contact Us', style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
                   const SizedBox(height: 4),
                   RichText(
                     text: TextSpan(
@@ -270,7 +244,7 @@ class _ProfileTabState extends State<ProfileTab> {
                         const TextSpan(text: 'For privacy questions or data requests, email: '),
                         TextSpan(
                           text: 'support@scanshield.app',
-                          style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold),
+                          style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold, color: AppColors.primary),
                         ),
                       ],
                     ),
@@ -298,124 +272,149 @@ class _ProfileTabState extends State<ProfileTab> {
 
   @override
   Widget build(BuildContext context) {
-    final avatarLetter = _userModel?.name.isNotEmpty == true ? _userModel!.name[0].toUpperCase() : 'U';
-    final name = _userModel?.name ?? 'User Name';
-    final email = _userModel?.email ?? 'user@email.com';
+    final user = _authService.getCurrentUser();
+    if (user == null) {
+      return const Center(child: Text('User not authenticated'));
+    }
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(AppSizes.paddingLarge),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          const SizedBox(height: AppSizes.paddingMedium),
-          // User Info Section
-          Center(
-            child: Column(
-              children: [
-                CircleAvatar(
-                  radius: 50,
-                  backgroundColor: AppColors.primary,
-                  child: Text(
-                    avatarLetter,
-                    style: AppTextStyles.headingLarge.copyWith(
-                      color: AppColors.background,
-                      fontSize: 36,
+    return StreamBuilder<UserModel?>(
+      stream: _firestoreService.getUserDataStream(user.uid),
+      builder: (context, userSnapshot) {
+        final userModel = userSnapshot.data;
+        final avatarLetter = userModel?.name.isNotEmpty == true
+            ? userModel!.name[0].toUpperCase()
+            : (user.displayName?.isNotEmpty == true ? user.displayName![0].toUpperCase() : 'U');
+        final name = userModel?.name ?? user.displayName ?? 'User Name';
+        final email = userModel?.email ?? user.email ?? 'user@email.com';
+
+        return SingleChildScrollView(
+          padding: const EdgeInsets.all(AppSizes.paddingLarge),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const SizedBox(height: AppSizes.paddingMedium),
+              // User Info Header Card
+              Container(
+                padding: const EdgeInsets.all(AppSizes.paddingLarge),
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(AppRadius.large),
+                  border: Border.all(color: AppColors.border),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.shadow,
+                      blurRadius: 10,
+                      offset: const Offset(0, 2),
                     ),
+                  ],
+                ),
+                child: Column(
+                  children: [
+                    CircleAvatar(
+                      radius: 44,
+                      backgroundColor: AppColors.primary,
+                      child: Text(
+                        avatarLetter,
+                        style: AppTextStyles.displayLarge.copyWith(
+                          color: AppColors.textOnPrimary,
+                          fontSize: 32,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: AppSizes.paddingMedium),
+                    Text(
+                      name,
+                      style: AppTextStyles.titleLarge,
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      email,
+                      style: AppTextStyles.bodyMedium,
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: AppSizes.paddingLarge),
+
+              // Menu Options Card
+              Container(
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(AppRadius.large),
+                  border: Border.all(color: AppColors.border),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.shadow,
+                      blurRadius: 10,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  children: [
+                    ListTile(
+                      leading: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withAlpha(15),
+                          borderRadius: BorderRadius.circular(AppRadius.small),
+                        ),
+                        child: const Icon(Icons.info_outline_rounded, color: AppColors.primary, size: 20),
+                      ),
+                      title: Text('About ScanShield', style: AppTextStyles.titleMedium),
+                      subtitle: Text('App details & scanning architecture', style: AppTextStyles.bodySmall),
+                      trailing: const Icon(Icons.chevron_right_rounded, color: AppColors.textTertiary),
+                      onTap: _showAboutDialog,
+                    ),
+                    const Divider(color: AppColors.border, height: 1),
+                    ListTile(
+                      leading: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withAlpha(15),
+                          borderRadius: BorderRadius.circular(AppRadius.small),
+                        ),
+                        child: const Icon(Icons.privacy_tip_outlined, color: AppColors.primary, size: 20),
+                      ),
+                      title: Text('Privacy Policy', style: AppTextStyles.titleMedium),
+                      subtitle: Text('Data collection & security practices', style: AppTextStyles.bodySmall),
+                      trailing: const Icon(Icons.chevron_right_rounded, color: AppColors.textTertiary),
+                      onTap: _showPrivacyPolicyDialog,
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: AppSizes.paddingLarge),
+
+              // Logout Button
+              ElevatedButton.icon(
+                onPressed: _showLogoutDialog,
+                icon: const Icon(Icons.logout_rounded, size: 20),
+                label: const Text('Logout'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.danger,
+                  foregroundColor: AppColors.textOnPrimary,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(AppRadius.large),
                   ),
                 ),
-                const SizedBox(height: AppSizes.paddingMedium),
-                Text(
-                  name,
-                  style: AppTextStyles.headingMedium,
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  email,
-                  style: AppTextStyles.bodyMedium.copyWith(color: AppColors.secondary),
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: AppSizes.paddingLarge * 1.5),
+              ),
+              const SizedBox(height: AppSizes.paddingLarge * 1.5),
 
-          // Stats Row
-          Row(
-            children: [
-              Expanded(
-                child: StatCard(
-                  icon: Icons.document_scanner_rounded,
-                  value: '${_stats['totalScans']}',
-                  label: 'Total Scans',
-                  color: AppColors.primary,
-                ),
+              // App Version
+              Text(
+                'ScanShield v1.1.0',
+                style: AppTextStyles.labelSmall,
+                textAlign: TextAlign.center,
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: StatCard(
-                  icon: Icons.warning_rounded,
-                  value: '${_stats['maliciousCount']}',
-                  label: 'Threats Found',
-                  color: AppColors.danger,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: StatCard(
-                  icon: Icons.verified_rounded,
-                  value: '${_stats['safeCount']}',
-                  label: 'Safe Apps',
-                  color: AppColors.safe,
-                ),
-              ),
+              const SizedBox(height: AppSizes.paddingMedium),
             ],
           ),
-          const SizedBox(height: AppSizes.paddingLarge * 1.5),
-
-          // Menu Options
-          Card(
-            child: Column(
-              children: [
-                ListTile(
-                  leading: const Icon(Icons.info_outline_rounded, color: AppColors.primary),
-                  title: Text('About ScanShield', style: AppTextStyles.bodyLarge),
-                  trailing: const Icon(Icons.chevron_right, color: AppColors.textSecondary),
-                  onTap: _showAboutDialog,
-                ),
-                const Divider(color: AppColors.background, height: 1),
-                ListTile(
-                  leading: const Icon(Icons.privacy_tip_outlined, color: AppColors.primary),
-                  title: Text('Privacy Policy', style: AppTextStyles.bodyLarge),
-                  trailing: const Icon(Icons.chevron_right, color: AppColors.textSecondary),
-                  onTap: _showPrivacyPolicyDialog,
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: AppSizes.paddingLarge),
-
-          // Logout Button
-          ElevatedButton.icon(
-            onPressed: _showLogoutDialog,
-            icon: const Icon(Icons.logout_rounded),
-            label: const Text('Logout'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.danger,
-              foregroundColor: Colors.white,
-            ),
-          ),
-          const SizedBox(height: AppSizes.paddingLarge * 1.5),
-
-          // App Version
-          Text(
-            'ScanShield v1.0.0',
-            style: AppTextStyles.caption,
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: AppSizes.paddingMedium),
-        ],
-      ),
+        );
+      },
     );
   }
 }

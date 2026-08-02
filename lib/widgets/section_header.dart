@@ -20,16 +20,16 @@ class SectionHeader extends StatelessWidget {
       children: [
         Text(
           title,
-          style: AppTextStyles.headingMedium.copyWith(fontSize: 18),
+          style: AppTextStyles.titleMedium,
         ),
         if (count != null) ...[
           const SizedBox(width: 8),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
             decoration: BoxDecoration(
-              color: (badgeColor ?? AppColors.primary).withAlpha(30),
+              color: (badgeColor ?? AppColors.primary).withAlpha(20),
               borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: (badgeColor ?? AppColors.primary).withAlpha(80)),
+              border: Border.all(color: (badgeColor ?? AppColors.primary).withAlpha(70)),
             ),
             child: Text(
               '$count',

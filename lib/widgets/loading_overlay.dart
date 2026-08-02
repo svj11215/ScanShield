@@ -22,10 +22,9 @@ class LoadingOverlay extends StatefulWidget {
 class _LoadingOverlayState extends State<LoadingOverlay> with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _pulseAnimation;
-  Timer? _textTimer;
   Timer? _stopwatchTimer;
   int _secondsElapsed = 0;
-  String _currentStepText = 'Extracting file...';
+  int _currentMessageIndex = 0;
 
   @override
   void initState() {
@@ -49,7 +48,7 @@ class _LoadingOverlayState extends State<LoadingOverlay> with SingleTickerProvid
     super.didUpdateWidget(oldWidget);
     if (widget.isVisible && !oldWidget.isVisible) {
       _secondsElapsed = 0;
-      _currentStepText = 'Extracting file...';
+      _currentMessageIndex = 0;
       _startTimers();
     } else if (!widget.isVisible && oldWidget.isVisible) {
       _stopTimers();
@@ -62,28 +61,37 @@ class _LoadingOverlayState extends State<LoadingOverlay> with SingleTickerProvid
       if (mounted) {
         setState(() {
           _secondsElapsed++;
-          _updateStepText();
+          _updateMessageIndex();
         });
       }
     });
   }
 
   void _stopTimers() {
-    _textTimer?.cancel();
     _stopwatchTimer?.cancel();
   }
 
-  void _updateStepText() {
-    if (_secondsElapsed < 5) {
-      _currentStepText = 'Extracting file...';
+  void _updateMessageIndex() {
+    // Advance through professional status messages based on elapsed time
+    final messages = AppConstants.scanStatusMessages;
+    if (_secondsElapsed < 3) {
+      _currentMessageIndex = 0;
+    } else if (_secondsElapsed < 8) {
+      _currentMessageIndex = 1;
     } else if (_secondsElapsed < 15) {
-      _currentStepText = 'Warming up server...';
+      _currentMessageIndex = 2;
+    } else if (_secondsElapsed < 20) {
+      _currentMessageIndex = 3;
     } else if (_secondsElapsed < 25) {
-      _currentStepText = 'Analyzing file...';
+      _currentMessageIndex = 4;
+    } else if (_secondsElapsed < 30) {
+      _currentMessageIndex = 5;
     } else if (_secondsElapsed < 35) {
-      _currentStepText = 'Calculating risk score...';
+      _currentMessageIndex = 6;
+    } else if (_secondsElapsed < 40) {
+      _currentMessageIndex = 7;
     } else {
-      _currentStepText = 'Generating report...';
+      _currentMessageIndex = messages.length - 1;
     }
   }
 
@@ -98,15 +106,17 @@ class _LoadingOverlayState extends State<LoadingOverlay> with SingleTickerProvid
   Widget build(BuildContext context) {
     if (!widget.isVisible) return const SizedBox.shrink();
 
-    return WillPopScope(
-      onWillPop: () async => false, // Prevent dismissing by back button
+    final currentMessage = AppConstants.scanStatusMessages[_currentMessageIndex];
+
+    return PopScope(
+      canPop: false,
       child: Stack(
         children: [
           // Blur backdrop
           BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 5.0, sigmaY: 5.0),
+            filter: ImageFilter.blur(sigmaX: 6.0, sigmaY: 6.0),
             child: Container(
-              color: Colors.black.withAlpha(150),
+              color: AppColors.textPrimary.withAlpha(60),
             ),
           ),
           Center(
@@ -114,13 +124,13 @@ class _LoadingOverlayState extends State<LoadingOverlay> with SingleTickerProvid
               margin: const EdgeInsets.symmetric(horizontal: AppSizes.paddingLarge),
               decoration: BoxDecoration(
                 color: AppColors.surface,
-                borderRadius: BorderRadius.circular(24),
-                border: Border.all(color: AppColors.primary.withAlpha(50), width: 1.5),
+                borderRadius: BorderRadius.circular(AppRadius.xxl),
+                border: Border.all(color: AppColors.border, width: 1),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withAlpha(50),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
+                    color: AppColors.shadowMedium,
+                    blurRadius: 20,
+                    offset: const Offset(0, 8),
                   ),
                 ],
               ),
@@ -137,11 +147,11 @@ class _LoadingOverlayState extends State<LoadingOverlay> with SingleTickerProvid
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: AppColors.primary.withAlpha(20),
+                          color: AppColors.primary.withAlpha(12),
                           boxShadow: [
                             BoxShadow(
-                              color: AppColors.primary.withAlpha(30),
-                              blurRadius: 20,
+                              color: AppColors.primary.withAlpha(15),
+                              blurRadius: 30,
                               spreadRadius: 2,
                             ),
                           ],
@@ -157,24 +167,29 @@ class _LoadingOverlayState extends State<LoadingOverlay> with SingleTickerProvid
                     
                     // Main title
                     Text(
-                      'Analyzing File...',
-                      style: AppTextStyles.headingMedium.copyWith(fontSize: 20),
+                      'Analyzing File',
+                      style: AppTextStyles.titleLarge,
                     ),
                     const SizedBox(height: 8),
 
-                    // Changing steps
-                    Text(
-                      _currentStepText,
-                      style: AppTextStyles.bodyMedium.copyWith(color: AppColors.secondary),
-                      textAlign: TextAlign.center,
+                    // Professional status message
+                    AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 400),
+                      child: Text(
+                        currentMessage,
+                        key: ValueKey(currentMessage),
+                        style: AppTextStyles.bodyMedium.copyWith(color: AppColors.secondary),
+                        textAlign: TextAlign.center,
+                      ),
                     ),
                     const SizedBox(height: AppSizes.paddingLarge),
 
                     // Progress bar
-                    const LinearProgressIndicator(
-                      backgroundColor: AppColors.background,
-                      valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
-                      minHeight: 5,
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(4),
+                      child: const LinearProgressIndicator(
+                        minHeight: 4,
+                      ),
                     ),
                     const SizedBox(height: AppSizes.paddingLarge),
 

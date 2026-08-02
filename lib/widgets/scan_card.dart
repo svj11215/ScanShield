@@ -37,7 +37,7 @@ class ScanCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: AppSizes.paddingMedium),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppRadius.large),
         child: Padding(
           padding: const EdgeInsets.all(AppSizes.paddingMedium),
           child: Row(
@@ -60,7 +60,7 @@ class ScanCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: AppSizes.paddingMedium),
- 
+
               // Title, date and indicator
               Expanded(
                 child: Column(
@@ -68,7 +68,7 @@ class ScanCard extends StatelessWidget {
                   children: [
                     Text(
                       scan.fileName,
-                      style: AppTextStyles.bodyLarge.copyWith(
+                      style: AppTextStyles.titleMedium.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
                       maxLines: 1,
@@ -94,9 +94,9 @@ class ScanCard extends StatelessWidget {
               const SizedBox(width: 8),
 
               // Action Arrow
-              Icon(
+              const Icon(
                 Icons.chevron_right_rounded,
-                color: AppColors.textSecondary.withAlpha(120),
+                color: AppColors.textTertiary,
               ),
             ],
           ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../utils/theme.dart';
+import '../chatbot/draggable_chatbot_overlay.dart';
 import 'tabs/dashboard_tab.dart';
 import 'tabs/profile_tab.dart';
 import 'scan_screen.dart';
@@ -32,38 +33,46 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Scaffold(
       body: SafeArea(
-        child: IndexedStack(
-          index: _currentIndex,
-          children: tabs,
+        child: Stack(
+          children: [
+            IndexedStack(
+              index: _currentIndex,
+              children: tabs,
+            ),
+            const DraggableChatbotOverlay(),
+          ],
         ),
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex,
-        onTap: _onTabTapped,
-        type: BottomNavigationBarType.fixed,
-        backgroundColor: AppColors.surface,
-        selectedItemColor: AppColors.primary,
-        unselectedItemColor: AppColors.textSecondary,
-        selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
-        unselectedLabelStyle: const TextStyle(fontSize: 12),
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home_rounded),
-            label: 'Home',
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          border: Border(
+            top: BorderSide(color: AppColors.border, width: 1),
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.shield_rounded),
-            label: 'Scan',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.history_rounded),
-            label: 'History',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person_rounded),
-            label: 'Profile',
-          ),
-        ],
+        ),
+        child: BottomNavigationBar(
+          currentIndex: _currentIndex,
+          onTap: _onTabTapped,
+          elevation: 0,
+          items: const [
+            BottomNavigationBarItem(
+              icon: Icon(Icons.home_rounded),
+              label: 'Home',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.shield_rounded),
+              label: 'Scan',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.history_rounded),
+              label: 'History',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.person_rounded),
+              label: 'Profile',
+            ),
+          ],
+        ),
       ),
     );
   }

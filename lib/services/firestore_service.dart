@@ -41,20 +41,26 @@ class FirestoreService {
         .toList();
   }
 
-  // Get user stats (totalScans, maliciousCount, safeCount)
-  Future<Map<String, int>> getUserStats(String uid) async {
-    final querySnapshot = await _firestore
-        .collection('scans')
-        .where('user_id', isEqualTo: uid)
-        .get();
+  // Stream user data
+  Stream<UserModel?> getUserDataStream(String uid) {
+    return _firestore
+        .collection('users')
+        .doc(uid)
+        .snapshots()
+        .map((doc) {
+          if (!doc.exists || doc.data() == null) return null;
+          return UserModel.fromMap(doc.data()!);
+        });
+  }
 
-    int totalScans = querySnapshot.docs.length;
+  // Calculate stats from a list of scan models
+  static Map<String, int> calculateStats(List<ScanModel> scans) {
+    int totalScans = scans.length;
     int maliciousCount = 0;
     int safeCount = 0;
 
-    for (var doc in querySnapshot.docs) {
-      final data = doc.data();
-      final level = (data['risk_level'] as String? ?? 'Low').toLowerCase();
+    for (var scan in scans) {
+      final level = scan.riskLevel.toLowerCase();
       if (level == 'high' || level == 'malicious') {
         maliciousCount++;
       } else if (level == 'low' || level == 'safe') {
@@ -67,6 +73,12 @@ class FirestoreService {
       'maliciousCount': maliciousCount,
       'safeCount': safeCount,
     };
+  }
+
+  // Get user stats (totalScans, maliciousCount, safeCount)
+  Future<Map<String, int>> getUserStats(String uid) async {
+    final scans = await getUserScans(uid);
+    return calculateStats(scans);
   }
 
   // Save scan result to scans collection

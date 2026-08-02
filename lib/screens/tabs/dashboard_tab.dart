@@ -1,5 +1,5 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import '../../services/firestore_service.dart';
 import '../../services/auth_service.dart';
 import '../../models/user_model.dart';
@@ -26,54 +26,17 @@ class DashboardTab extends StatefulWidget {
 class _DashboardTabState extends State<DashboardTab> {
   final AuthService _authService = AuthService();
   final FirestoreService _firestoreService = FirestoreService();
-  bool _isLoading = false;
 
-  UserModel? _userModel;
-  List<ScanModel> _recentScans = [];
-  Map<String, int> _stats = {
-    'totalScans': 0,
-    'maliciousCount': 0,
-    'safeCount': 0,
-  };
+  // Pick a random fact once per session (per state lifecycle)
+  late final String _currentFact;
 
   @override
   void initState() {
     super.initState();
-    _loadDashboardData();
-  }
-
-  Future<void> _loadDashboardData() async {
-    final user = _authService.getCurrentUser();
-    if (user == null) return;
-
-    if (mounted) setState(() => _isLoading = true);
-
-    try {
-      final userModel = await _firestoreService.getUserData(user.uid);
-      final stats = await _firestoreService.getUserStats(user.uid);
-      final recentScans = await _firestoreService.getRecentScans(user.uid);
-
-      if (mounted) {
-        setState(() {
-          _userModel = userModel;
-          _stats = stats;
-          _recentScans = recentScans;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error loading dashboard: $e'),
-            backgroundColor: AppColors.danger,
-          ),
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
-    }
+    final rng = Random();
+    _currentFact = AppConstants.didYouKnowFacts[
+      rng.nextInt(AppConstants.didYouKnowFacts.length)
+    ];
   }
 
   String _getFirstName(String fullName) {
@@ -83,257 +46,301 @@ class _DashboardTabState extends State<DashboardTab> {
 
   @override
   Widget build(BuildContext context) {
-    final avatarLetter = _userModel?.name.isNotEmpty == true ? _userModel!.name[0].toUpperCase() : 'U';
-    final firstName = _userModel?.name != null ? _getFirstName(_userModel!.name) : 'User';
+    final user = _authService.getCurrentUser();
+    if (user == null) {
+      return const Center(child: Text('User not authenticated'));
+    }
 
-    return RefreshIndicator(
-      onRefresh: _loadDashboardData,
-      color: AppColors.primary,
-      backgroundColor: AppColors.surface,
-      child: SingleChildScrollView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.symmetric(horizontal: AppSizes.paddingLarge, vertical: AppSizes.paddingMedium),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Custom Top AppBar Section
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  AppConstants.appName,
-                  style: AppTextStyles.headingMedium.copyWith(color: AppColors.primary),
-                ),
-                Row(
+    return StreamBuilder<UserModel?>(
+      stream: _firestoreService.getUserDataStream(user.uid),
+      builder: (context, userSnapshot) {
+        final userModel = userSnapshot.data;
+        final avatarLetter = userModel?.name.isNotEmpty == true
+            ? userModel!.name[0].toUpperCase()
+            : (user.displayName?.isNotEmpty == true ? user.displayName![0].toUpperCase() : 'U');
+        final firstName = userModel?.name != null
+            ? _getFirstName(userModel!.name)
+            : (user.displayName != null ? _getFirstName(user.displayName!) : 'User');
+
+        return StreamBuilder<List<ScanModel>>(
+          stream: _firestoreService.getUserScansStream(user.uid),
+          builder: (context, scansSnapshot) {
+            final isLoading = scansSnapshot.connectionState == ConnectionState.waiting && !scansSnapshot.hasData;
+            final scans = scansSnapshot.data ?? [];
+            final stats = FirestoreService.calculateStats(scans);
+            final recentScans = scans.take(3).toList();
+
+            return RefreshIndicator(
+              onRefresh: () async {},
+              color: AppColors.primary,
+              backgroundColor: AppColors.surface,
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.symmetric(horizontal: AppSizes.paddingLarge, vertical: AppSizes.paddingMedium),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    IconButton(
-                      icon: const Icon(Icons.notifications_none_rounded, color: AppColors.textPrimary),
-                      onPressed: () {},
+                    // Custom Top AppBar Section
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          AppConstants.appName,
+                          style: AppTextStyles.headingMedium.copyWith(color: AppColors.primary),
+                        ),
+                        Row(
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.notifications_none_rounded, color: AppColors.textPrimary),
+                              onPressed: () {},
+                            ),
+                            const SizedBox(width: 8),
+                            CircleAvatar(
+                              radius: 18,
+                              backgroundColor: AppColors.primary.withAlpha(20),
+                              child: Text(
+                                avatarLetter,
+                                style: AppTextStyles.bodyLarge.copyWith(
+                                  color: AppColors.primary,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: 8),
-                    CircleAvatar(
-                      radius: 18,
-                      backgroundColor: AppColors.primary.withAlpha(40),
-                      child: Text(
-                        avatarLetter,
-                        style: AppTextStyles.bodyLarge.copyWith(
-                          color: AppColors.primary,
-                          fontWeight: FontWeight.bold,
+                    const SizedBox(height: AppSizes.paddingLarge),
+
+                    // Welcome Card
+                    Container(
+                      padding: const EdgeInsets.all(AppSizes.paddingMedium),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(AppRadius.large),
+                        gradient: LinearGradient(
+                          colors: [
+                            AppColors.surface,
+                            AppColors.surfaceTint,
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        border: Border.all(color: AppColors.border),
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Hello, $firstName! 👋',
+                                  style: AppTextStyles.titleLarge,
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  'Keep your device safe from threats',
+                                  style: AppTextStyles.bodyMedium,
+                                ),
+                              ],
+                            ),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: AppColors.secondary.withAlpha(15),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.security_rounded,
+                              color: AppColors.secondary,
+                              size: 32,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: AppSizes.paddingLarge),
+
+                    // Stats Row
+                    Row(
+                      children: [
+                        Expanded(
+                          child: StatCard(
+                            icon: Icons.document_scanner_rounded,
+                            value: '${stats['totalScans'] ?? 0}',
+                            label: 'Total Scans',
+                            color: AppColors.primary,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: StatCard(
+                            icon: Icons.warning_rounded,
+                            value: '${stats['maliciousCount'] ?? 0}',
+                            label: 'Threats Found',
+                            color: AppColors.danger,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: StatCard(
+                            icon: Icons.verified_rounded,
+                            value: '${stats['safeCount'] ?? 0}',
+                            label: 'Safe Apps',
+                            color: AppColors.safe,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: AppSizes.paddingLarge),
+
+                    // Quick Action Button
+                    Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(AppRadius.large),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.primary.withAlpha(25),
+                            blurRadius: 16,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: ElevatedButton.icon(
+                        onPressed: () => widget.onNavigateToTab(1),
+                        icon: const Icon(Icons.search_rounded, size: 22),
+                        label: const Text('Scan APK or PDF'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                          foregroundColor: AppColors.textOnPrimary,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(AppRadius.large),
+                          ),
                         ),
                       ),
                     ),
-                  ],
-                ),
-              ],
-            ),
-            const SizedBox(height: AppSizes.paddingLarge),
+                    const SizedBox(height: AppSizes.paddingLarge * 1.5),
 
-            // Welcome Card
-            Container(
-              padding: const EdgeInsets.all(AppSizes.paddingMedium),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(16),
-                gradient: LinearGradient(
-                  colors: [
-                    AppColors.surface,
-                    AppColors.surface.withAlpha(200),
-                    AppColors.primary.withAlpha(15),
-                  ],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                border: Border.all(color: AppColors.primary.withAlpha(25)),
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    // Recent Scans Section
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          'Hello, $firstName! 👋',
-                          style: AppTextStyles.headingMedium.copyWith(fontSize: 18),
+                          'Recent Scans',
+                          style: AppTextStyles.titleMedium,
                         ),
-                        const SizedBox(height: 6),
-                        Text(
-                          'Keep your device safe from threats',
-                          style: AppTextStyles.bodyMedium,
+                        TextButton(
+                          onPressed: () => widget.onNavigateToTab(2),
+                          child: Text(
+                            'View All',
+                            style: AppTextStyles.bodyMedium.copyWith(
+                              color: AppColors.secondary,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         ),
                       ],
                     ),
-                  ),
-                  const Icon(
-                    Icons.security_rounded,
-                    color: AppColors.secondary,
-                    size: 40,
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: AppSizes.paddingLarge),
+                    const SizedBox(height: AppSizes.paddingSmall),
 
-            // Stats Row
-            Row(
-              children: [
-                Expanded(
-                  child: StatCard(
-                    icon: Icons.document_scanner_rounded,
-                    value: '${_stats['totalScans']}',
-                    label: 'Total Scans',
-                    color: AppColors.primary,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: StatCard(
-                    icon: Icons.warning_rounded,
-                    value: '${_stats['maliciousCount']}',
-                    label: 'Threats Found',
-                    color: AppColors.danger,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: StatCard(
-                    icon: Icons.verified_rounded,
-                    value: '${_stats['safeCount']}',
-                    label: 'Safe Apps',
-                    color: AppColors.safe,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: AppSizes.paddingLarge),
+                    // Recent Scans List or Empty State
+                    if (isLoading && recentScans.isEmpty)
+                      const Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(AppSizes.paddingLarge),
+                          child: CircularProgressIndicator(color: AppColors.primary),
+                        ),
+                      )
+                    else if (recentScans.isEmpty)
+                      Container(
+                        padding: const EdgeInsets.all(AppSizes.paddingLarge),
+                        decoration: BoxDecoration(
+                          color: AppColors.surfaceVariant,
+                          borderRadius: BorderRadius.circular(AppRadius.large),
+                          border: Border.all(color: AppColors.border),
+                        ),
+                        child: Column(
+                          children: [
+                            Icon(
+                              Icons.shield_outlined,
+                              color: AppColors.textTertiary,
+                              size: 48,
+                            ),
+                            const SizedBox(height: AppSizes.paddingMedium),
+                            Text(
+                              'No scans yet. Start by scanning an APK or PDF!',
+                              style: AppTextStyles.bodyMedium,
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        ),
+                      )
+                    else
+                      ...recentScans.map(
+                        (scan) => ScanCard(
+                          scan: scan,
+                          onTap: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(builder: (_) => ReportScreen(scanModel: scan)),
+                            );
+                          },
+                        ),
+                      ),
+                    const SizedBox(height: AppSizes.paddingLarge),
 
-            // Quick Action Button
-            Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.primary.withAlpha(30),
-                    blurRadius: 16,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: ElevatedButton.icon(
-                onPressed: () => widget.onNavigateToTab(1),
-                icon: const Icon(Icons.search_rounded, size: 22),
-                label: const Text('Scan APK or PDF'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: AppColors.background,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: AppSizes.paddingLarge * 1.5),
-
-            // Recent Scans Section
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Recent Scans',
-                  style: AppTextStyles.headingMedium.copyWith(fontSize: 16),
-                ),
-                TextButton(
-                  onPressed: () => widget.onNavigateToTab(2),
-                  child: Text(
-                    'View All',
-                    style: AppTextStyles.bodyMedium.copyWith(
-                      color: AppColors.secondary,
-                      fontWeight: FontWeight.bold,
+                    // Dynamic Did You Know Card
+                    Container(
+                      padding: const EdgeInsets.all(AppSizes.paddingMedium),
+                      decoration: BoxDecoration(
+                        color: AppColors.surfaceTint,
+                        borderRadius: BorderRadius.circular(AppRadius.large),
+                        border: Border.all(color: AppColors.primary.withAlpha(25)),
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: AppColors.warning.withAlpha(15),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.lightbulb_outline_rounded,
+                              color: AppColors.warning,
+                              size: 20,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Did you know?',
+                                  style: AppTextStyles.labelLarge,
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  _currentFact,
+                                  style: AppTextStyles.bodyMedium.copyWith(fontSize: 13),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: AppSizes.paddingSmall),
-
-            // Recent Scans List or Empty State
-            if (_isLoading && _recentScans.isEmpty)
-              const Center(
-                child: Padding(
-                  padding: EdgeInsets.all(AppSizes.paddingLarge),
-                  child: CircularProgressIndicator(color: AppColors.primary),
-                ),
-              )
-            else if (_recentScans.isEmpty)
-              Container(
-                padding: const EdgeInsets.all(AppSizes.paddingLarge),
-                decoration: BoxDecoration(
-                  color: AppColors.surface,
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Column(
-                  children: [
-                    Icon(
-                      Icons.shield_outlined,
-                      color: AppColors.textSecondary.withAlpha(80),
-                      size: 48,
-                    ),
-                    const SizedBox(height: AppSizes.paddingMedium),
-                    Text(
-                      'No scans yet. Start by scanning an APK or PDF!',
-                      style: AppTextStyles.bodyMedium,
-                      textAlign: TextAlign.center,
-                    ),
+                    const SizedBox(height: AppSizes.paddingLarge),
                   ],
                 ),
-              )
-            else
-              ..._recentScans.map(
-                (scan) => ScanCard(
-                  scan: scan,
-                  onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => ReportScreen(scanModel: scan)),
-                    );
-                  },
-                ),
               ),
-            const SizedBox(height: AppSizes.paddingLarge),
-
-            // Threat Awareness Card
-            Container(
-              padding: const EdgeInsets.all(AppSizes.paddingMedium),
-              decoration: BoxDecoration(
-                color: AppColors.surface.withAlpha(150),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppColors.surface),
-              ),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text('💡 ', style: TextStyle(fontSize: 20)),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Did you know?',
-                          style: AppTextStyles.bodyLarge.copyWith(fontWeight: FontWeight.bold),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Over ₹36,000 crore lost to banking fraud in India this year. Keep your banking apps shielded.',
-                          style: AppTextStyles.bodyMedium.copyWith(fontSize: 12),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: AppSizes.paddingLarge),
-          ],
-        ),
-      ),
+            );
+          },
+        );
+      },
     );
   }
 }

@@ -45,12 +45,12 @@ class RiskIndicator extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: _color.withAlpha(25),
-        borderRadius: BorderRadius.circular(12),
+        color: _color.withAlpha(20),
+        borderRadius: BorderRadius.circular(AppRadius.medium),
         border: Border.all(
-          color: _color.withAlpha(80),
+          color: _color.withAlpha(70),
           width: 1,
         ),
       ),
@@ -62,6 +62,7 @@ class RiskIndicator extends StatelessWidget {
             style: AppTextStyles.caption.copyWith(
               color: _color,
               fontWeight: FontWeight.bold,
+              fontSize: 11,
             ),
           ),
           const SizedBox(width: 6),
@@ -69,12 +70,12 @@ class RiskIndicator extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
             decoration: BoxDecoration(
               color: _color,
-              borderRadius: BorderRadius.circular(6),
+              borderRadius: BorderRadius.circular(4),
             ),
             child: Text(
               '$riskScore%',
               style: AppTextStyles.caption.copyWith(
-                color: AppColors.background,
+                color: AppColors.textOnPrimary,
                 fontWeight: FontWeight.bold,
                 fontSize: 10,
               ),

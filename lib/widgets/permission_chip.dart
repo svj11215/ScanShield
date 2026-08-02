@@ -31,7 +31,7 @@ class PermissionChip extends StatelessWidget {
               Expanded(
                 child: Text(
                   cleanName,
-                  style: AppTextStyles.headingMedium.copyWith(fontSize: 16),
+                  style: AppTextStyles.titleMedium,
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
@@ -44,7 +44,7 @@ class PermissionChip extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: (isDangerous ? AppColors.danger : AppColors.textSecondary).withAlpha(30),
+                  color: (isDangerous ? AppColors.danger : AppColors.textSecondary).withAlpha(20),
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text(
@@ -77,7 +77,7 @@ class PermissionChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDangerous = isDangerousPermission(permission);
-    final chipColor = isDangerous ? AppColors.danger : AppColors.surface;
+    final chipColor = isDangerous ? AppColors.danger : AppColors.surfaceVariant;
     final textColor = AppColors.textPrimary;
     final cleanName = permission.replaceAll('android.permission.', '');
 
@@ -87,10 +87,10 @@ class PermissionChip extends StatelessWidget {
         margin: const EdgeInsets.all(4),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
-          color: chipColor.withAlpha(isDangerous ? 35 : 100),
-          borderRadius: BorderRadius.circular(20),
+          color: isDangerous ? chipColor.withAlpha(20) : chipColor,
+          borderRadius: BorderRadius.circular(AppRadius.pill),
           border: Border.all(
-            color: isDangerous ? AppColors.danger.withAlpha(100) : AppColors.surface.withAlpha(200),
+            color: isDangerous ? AppColors.danger.withAlpha(80) : AppColors.border,
             width: 1,
           ),
         ),

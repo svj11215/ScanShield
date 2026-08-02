@@ -116,8 +116,7 @@ class _LoginScreenState extends State<LoginScreen> {
         return StatefulBuilder(
           builder: (context, setDialogState) {
             return AlertDialog(
-              backgroundColor: AppColors.surface,
-              title: Text('Reset Password', style: AppTextStyles.headingMedium),
+              title: Text('Reset Password', style: AppTextStyles.titleLarge),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -177,7 +176,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ? const SizedBox(
                           width: 20,
                           height: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.background),
+                          child: CircularProgressIndicator(strokeWidth: 2),
                         )
                       : const Text('Send Reset'),
                 ),
@@ -202,18 +201,27 @@ class _LoginScreenState extends State<LoginScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // Logo/Icon
+                  // Logo
                   Center(
                     child: Container(
-                      padding: const EdgeInsets.all(12),
+                      width: 88,
+                      height: 88,
+                      padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: AppColors.primary.withAlpha(20),
+                        color: AppColors.surfaceTint,
                         shape: BoxShape.circle,
+                        border: Border.all(color: AppColors.border, width: 1),
                       ),
-                      child: const Icon(
-                        Icons.shield_rounded,
-                        size: 80,
-                        color: AppColors.primary,
+                      child: Image.asset(
+                        'assets/images/logo.png',
+                        fit: BoxFit.contain,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Icon(
+                            Icons.shield_rounded,
+                            size: 52,
+                            color: AppColors.primary,
+                          );
+                        },
                       ),
                     ),
                   ),
@@ -291,7 +299,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       child: Text(
                         'Forgot Password?',
                         style: AppTextStyles.bodyMedium.copyWith(
-                          color: AppColors.secondary,
+                          color: AppColors.primary,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -308,7 +316,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             height: 24,
                             child: CircularProgressIndicator(
                               strokeWidth: 2.5,
-                              color: AppColors.background,
+                              color: AppColors.textOnPrimary,
                             ),
                           )
                         : const Text('Login'),
@@ -318,18 +326,17 @@ class _LoginScreenState extends State<LoginScreen> {
                   // OR Divider
                   Row(
                     children: [
-                      const Expanded(child: Divider(color: AppColors.surface, thickness: 1.5)),
+                      const Expanded(child: Divider(color: AppColors.border)),
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: AppSizes.paddingMedium),
                         child: Text(
                           'OR',
-                          style: AppTextStyles.bodyMedium.copyWith(
-                            color: AppColors.textSecondary.withAlpha(150),
+                          style: AppTextStyles.caption.copyWith(
                             fontWeight: FontWeight.w600,
                           ),
                         ),
                       ),
-                      const Expanded(child: Divider(color: AppColors.surface, thickness: 1.5)),
+                      const Expanded(child: Divider(color: AppColors.border)),
                     ],
                   ),
                   const SizedBox(height: AppSizes.paddingLarge),
@@ -337,21 +344,12 @@ class _LoginScreenState extends State<LoginScreen> {
                   // Google Sign-In Button
                   OutlinedButton(
                     onPressed: _isLoading ? null : _handleGoogleSignIn,
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: AppColors.textPrimary,
-                      side: const BorderSide(color: AppColors.surface, width: 1.5),
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                    ),
                     child: _isGoogleLoading
                         ? const SizedBox(
                             width: 24,
                             height: 24,
                             child: CircularProgressIndicator(
                               strokeWidth: 2.5,
-                              color: AppColors.textPrimary,
                             ),
                           )
                         : Row(
@@ -395,7 +393,6 @@ class _LoginScreenState extends State<LoginScreen> {
                           style: AppTextStyles.bodyMedium.copyWith(
                             color: AppColors.primary,
                             fontWeight: FontWeight.bold,
-                            decoration: TextDecoration.underline,
                           ),
                         ),
                       ),
