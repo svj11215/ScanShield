@@ -1,12 +1,16 @@
 import 'dart:convert';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'chat_message.dart';
 import 'system_prompt.dart';
 
 class ChatService {
-  static const String _apiKey = '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';
+  static String get _apiKey =>
+      dotenv.env['GROQ_API_KEY'] ??
+      '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';
   static const String _endpoint = 'https://api.groq.com/openai/v1/chat/completions';
-  static const String _model = 'llama-3.3-70b-versatile';
+  static String get _model =>
+      dotenv.env['GROQ_MODEL'] ?? 'qwen/qwen3.8-27b';
   static const double _temperature = 0.6;
   static const int _maxTokens = 500;
   static const Duration _timeout = Duration(seconds: 30);
